@@ -167,7 +167,8 @@ std::string Holder::represent() {
     for (auto& output_line : output_lines) {
         output << output_line << std::endl;
     }
-    return output.str();
+    auto str = output.str();
+    return str;
 }
 
 std::string Holder::_signature_simple() {
@@ -343,11 +344,11 @@ std::string Holder::signature() {
                     }
                 }
 
-                if (all_same_value_type) {
-                    output += std::get<2>(holder_dict[0])._signature_simple();
-                } else {
-                    output += DBUS_TYPE_VARIANT_AS_STRING;
-                }
+                // if (all_same_value_type) {
+                //     output += std::get<2>(holder_dict[0]).signature();
+                // } else {
+                output += DBUS_TYPE_VARIANT_AS_STRING;
+                // }
             }
 
             output += DBUS_DICT_ENTRY_END_CHAR_AS_STRING;

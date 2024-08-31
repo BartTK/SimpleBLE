@@ -37,6 +37,16 @@ Message Interface::create_method_call(const std::string& method_name) {
 }
 
 // ----- PROPERTIES -----
+void Interface::on_property_get_all(Holder& all_properties) {
+    _property_update_mutex.lock();
+    for (auto& propPair : _properties) {
+        if (_property_valid_map[propPair.first]) {
+            auto value = propPair.second;
+            all_properties.dict_append(Holder::Type::STRING, propPair.first, propPair.second);
+        }
+    }
+    _property_update_mutex.unlock();
+}
 
 Holder Interface::property_get_all() {
     Message query_msg = Message::create_method_call(_bus_name, _path, "org.freedesktop.DBus.Properties", "GetAll");
@@ -106,6 +116,19 @@ void Interface::property_refresh(const std::string& property_name) {
 }
 
 void Interface::property_changed(std::string option_name) {}
+
+void Interface::emit_property_changed(const std::string& property_name, const Holder& new_value) {
+    auto message = Message::create_signal(_path, "org.freedesktop.DBus.Properties", "PropertiesChanged");
+    message.append_argument(Holder::create_string(_interface_name), "s");
+
+    Holder changed_properties = Holder::create_dict();
+    changed_properties.dict_append(Holder::Type::STRING, property_name, new_value);
+
+    message.append_argument(changed_properties, "as");
+    message.append_argument(Holder::create_array(), "a{sv}");
+
+    _conn->send(message);
+}
 
 // ----- SIGNALS -----
 

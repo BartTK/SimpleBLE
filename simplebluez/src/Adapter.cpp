@@ -18,6 +18,8 @@ std::shared_ptr<SimpleDBus::Proxy> Adapter::path_create(const std::string& path)
 std::shared_ptr<SimpleDBus::Interface> Adapter::interfaces_create(const std::string& interface_name) {
     if (interface_name == "org.bluez.Adapter1") {
         return std::static_pointer_cast<SimpleDBus::Interface>(std::make_shared<Adapter1>(_conn, _path));
+    } else if (interface_name == "org.bluez.LEAdvertisingManager1") {
+        return std::static_pointer_cast<SimpleDBus::Interface>(std::make_shared<LEAdvertisingManager1>(_conn, _path));
     }
 
     auto interface = std::make_shared<SimpleDBus::Interface>(_conn, _bus_name, _path, interface_name);
@@ -84,4 +86,26 @@ void Adapter::set_on_device_updated(std::function<void(std::shared_ptr<Device> d
 void Adapter::clear_on_device_updated() {
     on_child_created.unload();
     on_child_signal_received.unload();
+}
+
+void Adapter::register_advertisement(std::shared_ptr<LEAdvertisement> advertisement) {
+    _advertisements.push_back(advertisement);
+    {
+        std::scoped_lock lock(_child_access_mutex);
+        _children.emplace(std::make_pair(_path + "/ad2", std::static_pointer_cast<SimpleDBus::Proxy>(advertisement)));
+    }
+    le_advertising_manager1()->RegisterAdvertisement(advertisement->path());
+}
+
+void Adapter::unregister_advertisement(std::shared_ptr<LEAdvertisement> advertisement) {
+    _advertisements.remove(advertisement);
+    le_advertising_manager1()->UnregisterAdvertisement(advertisement->path());
+}
+
+std::shared_ptr<LEAdvertisement> Adapter::new_advertisement() {
+    return std::make_shared<SimpleBluez::LEAdvertisement>(_conn, _path + "/ad2");
+}
+
+std::shared_ptr<LEAdvertisingManager1> Adapter::le_advertising_manager1() {
+    return std::dynamic_pointer_cast<LEAdvertisingManager1>(interface_get("org.bluez.LEAdvertisingManager1"));
 }

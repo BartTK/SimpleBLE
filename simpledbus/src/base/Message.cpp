@@ -361,7 +361,7 @@ static const char* type_to_name(int message_type) {
     }
 }
 
-std::string Message::to_string(bool append_arguments) const {
+std::string Message::to_string(bool append_arguments) {
     if (!is_valid()) {
         return "INVALID";
     }
@@ -378,17 +378,30 @@ std::string Message::to_string(bool append_arguments) const {
 
     oss << "[" << _unique_id << "] " << type_to_name(dbus_message_get_type(_msg));
     oss << "[" << sender << "->" << destination << "] ";
-    oss << dbus_message_get_path(_msg) << " " << dbus_message_get_interface(_msg) << " "
-        << dbus_message_get_member(_msg);
+    auto path = dbus_message_get_path(_msg);
+    auto interface = dbus_message_get_interface(_msg);
+    auto message = dbus_message_get_member(_msg);
+    oss << (path ? path : "?") << " " << (interface ? interface : "?") << " " << (message ? message : "?");
 
-    if (get_type() == Message::Type::METHOD_CALL && append_arguments) {
-        oss << std::endl;
-        oss << "Arguments: " << std::endl;
-        for (auto arg : _arguments) {
-            oss << arg.represent();
-        }
+    if (get_type() == Message::Type::ERROR) {
+        DBusError err;
+        dbus_set_error_from_message(&err, _msg);
+        oss << std::endl << "Error name: " << err.name << ", message: " << err.message;
     }
-    return oss.str();
+
+    if (/*get_type() == Message::Type::METHOD_CALL &&*/ append_arguments) {
+        oss << std::endl;
+        oss << "Arguments out: " << std::endl;
+        for (auto arg : _arguments) {
+            auto argRep = arg.represent();
+            oss << argRep;
+        }
+        oss << std::endl;
+        oss << "Arguments in: " << std::endl;
+        oss << extract().represent();
+    }
+    auto result = oss.str();
+    return result;
 }
 
 Holder Message::extract() {
@@ -595,4 +608,8 @@ Message Message::create_method_return(const Message& msg) { return Message(dbus_
 
 Message Message::create_error(const Message& msg, std::string error_name, std::string error_message) {
     return Message(dbus_message_new_error(msg._msg, error_name.c_str(), error_message.c_str()));
+}
+
+Message Message::create_signal(const std::string& path, const std::string& interface, const std::string& signal_name) {
+    return Message(dbus_message_new_signal(path.c_str(), interface.c_str(), signal_name.c_str()));
 }

@@ -48,6 +48,10 @@ void Bluez::run_async() {
     _conn->read_write();
     SimpleDBus::Message message = _conn->pop_message();
     while (message.is_valid()) {
+        auto path = message.get_path();
+        // auto str = message.to_string(true);
+        // auto interf = message.get_interface();
+        // std::cout << "3 <- " << str << std::endl;
         message_forward(message);
         message = _conn->pop_message();
     }

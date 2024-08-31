@@ -106,6 +106,8 @@ class Holder {
     std::map<std::string, Holder> get_dict_signature() const;
 
     void dict_append(Type key_type, std::any key, Holder value);
+    template <typename KeyType>
+    void dict_remove(KeyType key);
     void array_append(Holder holder);
 
     // Template speciallizations.
@@ -141,5 +143,16 @@ class Holder {
     static std::string _signature_type(Type type);
     static std::string _represent_type(Type type, std::any value);
 };
+
+template <typename KeyType>
+void Holder::dict_remove(KeyType keyToRemove) {
+    for (auto it = holder_dict.begin(); it != holder_dict.end(); it++) {
+        std::any& key = std::get<1>(*it);
+        if (key.type() == typeid(KeyType) && std::any_cast<KeyType>(key) == keyToRemove) {
+            holder_dict.erase(it);
+            break;
+        }
+    }
+}
 
 }  // namespace SimpleDBus

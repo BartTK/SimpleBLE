@@ -5,6 +5,8 @@
 
 #include "Logging.h"
 
+#include <iostream>
+
 using namespace SimpleDBus;
 
 Connection::Connection(DBusBusType dbus_bus_type) : _dbus_bus_type(dbus_bus_type) {}
@@ -131,6 +133,9 @@ void Connection::send(Message& msg) {
 
     std::lock_guard<std::recursive_mutex> lock(_mutex);
 
+    // auto str = msg.to_string(true);
+    // std::cout << "1 -> " << str << std::endl;
+
     uint32_t msg_serial = 0;
     dbus_connection_send(_conn, msg._msg, &msg_serial);
     dbus_connection_flush(_conn);
@@ -143,6 +148,8 @@ Message Connection::send_with_reply_and_block(Message& msg) {
 
     std::lock_guard<std::recursive_mutex> lock(_mutex);
 
+    // std::cout << "2 -> " << msg.to_string(true) << std::endl;
+
     ::DBusError err;
     dbus_error_init(&err);
     DBusMessage* msg_tmp = dbus_connection_send_with_reply_and_block(_conn, msg._msg, -1, &err);
@@ -154,7 +161,11 @@ Message Connection::send_with_reply_and_block(Message& msg) {
         throw Exception::SendFailed(err_name, err_message, msg.to_string());
     }
 
-    return Message(msg_tmp);
+    auto returnMsg = Message(msg_tmp);
+
+    // std::cout << "4 <- " << returnMsg.to_string(true) << std::endl;
+
+    return returnMsg;
 }
 
 std::string Connection::unique_name() {

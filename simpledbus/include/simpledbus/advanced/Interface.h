@@ -27,6 +27,8 @@ class Interface {
 
     // ----- PROPERTIES -----
     virtual void property_changed(std::string option_name);
+    void emit_property_changed(const std::string& property_name, const Holder& new_value);
+    void on_property_get_all(Holder& all_properties);
 
     Holder property_get_all();
     Holder property_get(const std::string& property_name);

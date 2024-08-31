@@ -55,6 +55,7 @@ set(SIMPLEBLUEZ_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Adapter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Bluez.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Descriptor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/LEAdvertisement.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interfaces/Adapter1.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interfaces/Agent1.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interfaces/GattDescriptor1.cpp
@@ -63,6 +64,8 @@ set(SIMPLEBLUEZ_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interfaces/Device1.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interfaces/Battery1.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interfaces/AgentManager1.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/interfaces/LEAdvertisement1.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/interfaces/LEAdvertisingManager1.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../simpledbus/src/advanced/Interface.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../simpledbus/src/advanced/Proxy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../simpledbus/src/base/Connection.cpp

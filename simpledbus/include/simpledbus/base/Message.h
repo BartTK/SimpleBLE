@@ -40,7 +40,7 @@ class Message {
     void extract_reset();
     bool extract_has_next();
     void extract_next();
-    std::string to_string(bool append_arguments = false) const;
+    std::string to_string(bool append_arguments = false);
 
     int32_t get_unique_id();
     uint32_t get_serial();
@@ -58,6 +58,8 @@ class Message {
     static Message create_method_return(const Message& msg);
 
     static Message create_error(const Message& msg, std::string error_name, std::string error_message);
+
+    static Message create_signal(const std::string& path, const std::string& interface, const std::string& signal_name);
 
   private:
     friend class Connection;

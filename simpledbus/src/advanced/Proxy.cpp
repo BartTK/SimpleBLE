@@ -255,6 +255,40 @@ void Proxy::message_forward(Message& msg) {
 
             interface_get(iface_name)->signal_property_changed(changed_properties, invalidated_properties);
 
+        } else if (msg.get_type() == Message::METHOD_CALL && msg.get_interface() == "org.freedesktop.DBus.Properties" &&
+                   msg.get_member() == "GetAll") {
+            Holder interface_h = msg.extract();
+            std::string iface_name = interface_h.get_string();
+
+            // If the interface is not loaded, then ignore the message.
+            if (iface_name != "" && !interface_exists(iface_name)) {
+                return;
+            }
+
+            auto properties = SimpleDBus::Holder::create_dict();
+            if (iface_name == "") {
+                for (auto& nameAndIf : interfaces()) {
+                    nameAndIf.second->on_property_get_all(properties);
+                }
+            } else {
+                interface_get(iface_name)->on_property_get_all(properties);
+            }
+
+            SimpleDBus::Message reply = SimpleDBus::Message::create_method_return(msg);
+            reply.append_argument(properties, "a{sv}");
+            _conn->send(reply);
+
+        } else if (msg.get_type() == Message::METHOD_CALL &&
+                   msg.get_interface() == "org.freedesktop.DBus.ObjectManager" &&
+                   msg.get_member() == "GetManagedObjects") {
+            auto paths = SimpleDBus::Holder::create_dict();
+
+            get_all_objects(paths);
+
+            SimpleDBus::Message reply = SimpleDBus::Message::create_method_return(msg);
+            reply.append_argument(paths, "a{sv}");
+            _conn->send(reply);
+
         } else if (interface_exists(msg.get_interface())) {
             interface_get(msg.get_interface())->message_handle(msg);
         }
@@ -276,5 +310,19 @@ void Proxy::message_forward(Message& msg) {
             child->message_forward(msg);
             return;
         }
+    }
+}
+
+void Proxy::get_all_objects(Holder& paths) {
+    auto interfacesHolder = SimpleDBus::Holder::create_dict();
+    for (auto& nameAndIf : interfaces()) {
+        auto properties = SimpleDBus::Holder::create_dict();
+        nameAndIf.second->on_property_get_all(properties);
+        interfacesHolder.dict_append(Holder::Type::STRING, nameAndIf.first, properties);
+    }
+    paths.dict_append(Holder::Type::STRING, _path, interfacesHolder);
+
+    for (auto& [child_path, child] : _children) {
+        child->get_all_objects(paths);
     }
 }

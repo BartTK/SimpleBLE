@@ -1,8 +1,8 @@
 #pragma once
 
 #include <simpledbus/advanced/Interface.h>
-#include <simpledbus/external/kvn_safe_callback.hpp>
 #include <simpledbus/base/Path.h>
+#include <simpledbus/external/kvn_safe_callback.hpp>
 
 #include <memory>
 #include <mutex>
@@ -32,6 +32,7 @@ class Proxy {
 
     // ----- INTROSPECTION -----
     std::string introspect();
+    void get_all_objects(Holder& paths);
 
     // ----- INTERFACE HANDLING -----
     size_t interfaces_count();
